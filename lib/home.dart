@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:gemini/drawer.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 
 class HomeScreen extends StatefulWidget {
@@ -21,18 +20,14 @@ class _HomeScreenState extends State<HomeScreen> {
   ChatUser currentUser = ChatUser(id: '0', firstName: 'User');
   ChatUser geminiUser = ChatUser(id: '1', firstName: 'Hive');
   FocusNode _focusNode = FocusNode();
-  bool _isFocused = false; // To track if the text field is focused
 
-  stt.SpeechToText _speech = stt.SpeechToText();
-  bool _isListening = false;
-  String _spokenText = "";
+
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(() {
       setState(() {
-        _isFocused = _focusNode.hasFocus; // Update focus state
       });
     });
     // Automatically send a welcome message when the app starts
@@ -100,13 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             onPressed: _showImageSourceOptions, // Updated to show options
             icon: Icon(Icons.add, color: Colors.white), // Icon for options
-          ),
-          IconButton(
-            onPressed: _toggleListening, // Start or stop speech recognition
-            icon: Icon(
-              _isListening ? Icons.stop : Icons.mic,
-              color: Colors.white,
-            ),
           ),
         ],
         focusNode: _focusNode, // Add focus node to the text input
@@ -223,26 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _sendWelcomeMessage(); // Send the welcome message again for the new chat
   }
 
-  void _toggleListening() async {
-    if (_isListening) {
-      setState(() {
-        _isListening = false;
-      });
-      _speech.stop();
-    } else {
-      bool available = await _speech.initialize();
-      if (available) {
-        setState(() {
-          _isListening = true;
-        });
-        _speech.listen(onResult: (result) {
-          setState(() {
-            _spokenText = result.recognizedWords;
-          });
-        });
-      }
-    }
-  }
+
 }
 
 

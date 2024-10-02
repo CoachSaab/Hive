@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:gemini/home.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,6 +12,34 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
+  late BannerAd bannerAd;
+  bool isAdLoaded = false;
+  var adUnit = 'ca-app-pub-3940256099942544/2435281174';
+
+  void initBannerAd() {
+    bannerAd = BannerAd(
+      size: AdSize.banner,
+      adUnitId: adUnit, // Use the test ad unit ID for testing
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            isAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          print('Ad failed to load: $error');
+        },
+      ),
+      request: AdRequest(),
+    );
+
+    bannerAd.load();
+  }
+
+
+
   double _opacity = 0.0;
   String displayedText = "";
   final List<String> phrases = [
@@ -34,6 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    initBannerAd();
     randomPhrase = phrases[Random().nextInt(phrases.length)];
     _startSplashScreen();
     _fadeIn();
@@ -41,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _startSplashScreen() {
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 5), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
@@ -49,7 +79,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _fadeIn() {
-    Future.delayed(const Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 80), () {
       setState(() {
         _opacity = 1.0;
       });
@@ -105,6 +135,19 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         ),
       ),
+
+      bottomNavigationBar: isAdLoaded
+          ? SizedBox(
+        height: bannerAd.size.height.toDouble(),
+        width: bannerAd.size.width.toDouble(),
+        child: AdWidget(ad: bannerAd),
+      )
+          : const SizedBox(),
     );
+  }
+  @override
+  void dispose() {
+    super.dispose();
+    bannerAd.dispose(); // Dispose of the ad to prevent memory leaks
   }
 }
